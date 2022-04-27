@@ -145,14 +145,14 @@ public class KubernetesLauncher extends JNLPLauncher {
                     LOGGER.log(INFO, () -> "Caught exception: " + cloudName + " " + namespace + "/" + podName + " code: " + httpCode);
                     if (400 <= httpCode && httpCode < 500) { // 4xx
                         if (httpCode == 403 && e.getMessage().contains("is forbidden: exceeded quota")) {
-                            LOGGER.warning(String.format("Unable to create pod: %s %s/%s because kubernetes resource quota exceeded. %n%s%nRetrying...%n%n",
+                            LOGGER.warning(String.format("Unable to create pod: %s %s/%s because kubernetes resource quota exceeded. %s ... Retrying...",
                                     cloudName, namespace, pod.getMetadata().getName(), e.getMessage()));
                         } else if (httpCode == 409 && e.getMessage().contains("Operation cannot be fulfilled on resourcequotas")) {
                             // See: https://github.com/kubernetes/kubernetes/issues/67761 ; A retry usually works.
-                            LOGGER.warning(String.format("Unable to create pod: %s %s/%s because kubernetes resource quota update conflict. %n%s%nRetrying...%n%n",
+                            LOGGER.warning(String.format("Unable to create pod: %s %s/%s because kubernetes resource quota update conflict. %s Retrying...",
                                     cloudName, namespace, pod.getMetadata().getName(), e.getMessage()));
                         } else {
-                            LOGGER.severe(String.format("ERROR: Unable to create pod %s %s/%s.%n%s%n", cloudName, namespace, pod.getMetadata().getName(), e.getMessage()));
+                            LOGGER.severe(String.format("ERROR: Unable to create pod %s %s/%s. %s", cloudName, namespace, pod.getMetadata().getName(), e.getMessage()));
                             PodUtils.cancelQueueItemFor(pod, e.getMessage());
                             throw e;
                         }
