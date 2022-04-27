@@ -134,7 +134,7 @@ public class KubernetesLauncher extends JNLPLauncher {
             int iterationCount = 60;
 
             while (!done && iterationCount > 0) {
-                LOGGER.log(INFO, "Create attempt ( " + (60 - iterationCount)  +"): "+ cloudName + " " + namespace + "/" + podName);
+                LOGGER.log(INFO, "Create attempt (" + (60 - iterationCount)  +"): "+ cloudName + " " + namespace + "/" + podName);
                 try {
                     pod = client.pods().inNamespace(namespace).create(pod);
                     done = true;
@@ -170,6 +170,12 @@ public class KubernetesLauncher extends JNLPLauncher {
                     throw e;
                 }
             }
+
+            if (iterationCount <= 0) {
+                LOGGER.log(INFO, "Failed pod provisioning after 60 iterations: " + cloudName + " " + namespace + "/" + podName);
+                throw new KubernetesClientTimeoutException(pod, 60, TimeUnit.SECONDS);
+            }
+
             LOGGER.log(INFO, () -> "Created Pod: " + cloudName + " " + namespace + "/" + podName);
             listener.getLogger().printf("Created Pod: %s %s/%s%n", cloudName, namespace, podName);
             Metrics.metricRegistry().counter(MetricNames.PODS_CREATED).inc();

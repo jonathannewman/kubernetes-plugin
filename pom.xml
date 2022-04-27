@@ -39,7 +39,7 @@
   </developers>
 
   <properties>
-    <changelist>68126-SNAPSHOT-NOWATCHER</changelist>
+    <changelist>68126-SNAPSHOT-NOWATCHER-JN-RETRY-LOGGING</changelist>
     <!-- in minikube
     minikube ip | sed -e 's/\([0-9]*\.[0-9]*\.[0-9]*\).*/\1.1/' -->
     <connectorHost />
