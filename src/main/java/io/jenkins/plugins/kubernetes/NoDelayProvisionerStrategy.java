@@ -35,6 +35,8 @@ public class NoDelayProvisionerStrategy extends NodeProvisioner.Strategy {
     private static final boolean DISABLE_NODELAY_PROVISING = Boolean.valueOf(
             System.getProperty("io.jenkins.plugins.kubernetes.disableNoDelayProvisioning"));
 
+    private static final int MAX_PROVISIONING = Integer.parseInt(System.getProperty("io.jenkins.plugins.kubernetes.noDelayMaxProvision", "50"));
+
     @Override
     public NodeProvisioner.StrategyDecision apply(NodeProvisioner.StrategyState strategyState) {
         if (DISABLE_NODELAY_PROVISING) {
@@ -62,6 +64,8 @@ public class NoDelayProvisionerStrategy extends NodeProvisioner.Strategy {
                 int workloadToProvision = currentDemand - availableCapacity;
                 if (!(cloud instanceof KubernetesCloud)) continue;
                 if (!cloud.canProvision(cloudState)) continue;
+
+                workloadToProvision = Math.min(MAX_PROVISIONING, workloadToProvision);
                 for (CloudProvisioningListener cl : CloudProvisioningListener.all()) {
                     if (cl.canProvision(cloud, cloudState, workloadToProvision) != null) {
                         continue;
