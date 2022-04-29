@@ -27,13 +27,14 @@ public class StandardPlannedNodeBuilder extends PlannedNodeBuilder {
         PodTemplate t = getTemplate();
         Future f;
         f = EXECUTOR.submit(() -> {
+            long insideThreadStart = System.currentTimeMillis();
             LOGGER.info("actually creating slave");
             KubernetesSlave agent = KubernetesSlave
                     .builder()
                     .podTemplate(cloud.getUnwrappedTemplate(t))
                     .cloud(cloud)
                     .build();
-
+            LOGGER.info("Created slave in " + (System.currentTimeMillis() - insideThreadStart) + " milliseconds");
             return agent;
             }
         );
