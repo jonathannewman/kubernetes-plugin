@@ -84,13 +84,9 @@ public class NoDelayProvisionerStrategy extends NodeProvisioner.Strategy {
             LOGGER.log(Level.FINE, "Suggesting NodeProvisioner review");
             Timer.get().schedule(label.nodeProvisioner::suggestReviewNow, 1L, TimeUnit.SECONDS);
         }
-        if (availableCapacity >= currentDemand) {
-            LOGGER.log(Level.FINE, "Provisioning completed");
-            return NodeProvisioner.StrategyDecision.PROVISIONING_COMPLETED;
-        } else {
-            LOGGER.log(Level.FINE, "Provisioning not complete, consulting remaining strategies");
-            return NodeProvisioner.StrategyDecision.CONSULT_REMAINING_STRATEGIES;
-        }
+
+        LOGGER.log(Level.FINE, "Provisioning completed");
+        return NodeProvisioner.StrategyDecision.PROVISIONING_COMPLETED;
     }
 
     private static void fireOnStarted(final Cloud cloud, final Label label,
