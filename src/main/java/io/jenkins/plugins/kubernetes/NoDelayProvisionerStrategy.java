@@ -40,7 +40,7 @@ public class NoDelayProvisionerStrategy extends NodeProvisioner.Strategy {
     @Override
     public NodeProvisioner.StrategyDecision apply(NodeProvisioner.StrategyState strategyState) {
         if (DISABLE_NODELAY_PROVISING) {
-            LOGGER.log(Level.FINE, "Provisioning not complete, NoDelayProvisionerStrategy is disabled");
+            LOGGER.log(Level.INFO, "Provisioning not complete, NoDelayProvisionerStrategy is disabled");
             return NodeProvisioner.StrategyDecision.CONSULT_REMAINING_STRATEGIES;
         }
 
@@ -72,20 +72,20 @@ public class NoDelayProvisionerStrategy extends NodeProvisioner.Strategy {
                     }
                 }
                 Collection<NodeProvisioner.PlannedNode> plannedNodes = cloud.provision(cloudState, workloadToProvision);
-                LOGGER.log(Level.FINE, "Planned {0} new nodes", plannedNodes.size());
+                LOGGER.log(Level.INFO, "Planned {0} new nodes", plannedNodes.size());
                 fireOnStarted(cloud, strategyState.getLabel(), plannedNodes);
                 strategyState.recordPendingLaunches(plannedNodes);
                 availableCapacity += plannedNodes.size();
-                LOGGER.log(Level.FINE, "After provisioning, available capacity={0}, currentDemand={1}", new Object[]{availableCapacity, currentDemand});
+                LOGGER.log(Level.INFO, "After provisioning, available capacity={0}, currentDemand={1}", new Object[]{availableCapacity, currentDemand});
                 break;
             }
         }
         if (availableCapacity > previousCapacity && label != null) {
-            LOGGER.log(Level.FINE, "Suggesting NodeProvisioner review");
+            LOGGER.log(Level.INFO, "Suggesting NodeProvisioner review");
             Timer.get().schedule(label.nodeProvisioner::suggestReviewNow, 1L, TimeUnit.SECONDS);
         }
 
-        LOGGER.log(Level.FINE, "Provisioning completed");
+        LOGGER.log(Level.INFO, "Provisioning completed");
         return NodeProvisioner.StrategyDecision.PROVISIONING_COMPLETED;
     }
 
