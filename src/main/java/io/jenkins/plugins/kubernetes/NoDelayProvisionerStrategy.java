@@ -60,24 +60,36 @@ public class NoDelayProvisionerStrategy extends NodeProvisioner.Strategy {
             List<Cloud> jenkinsClouds = new ArrayList<>(Jenkins.get().clouds);
             Collections.shuffle(jenkinsClouds);
             Cloud.CloudState cloudState = new Cloud.CloudState(label, strategyState.getAdditionalPlannedCapacity());
-            for (Cloud cloud : jenkinsClouds) {
-                int workloadToProvision = currentDemand - availableCapacity;
-                if (!(cloud instanceof KubernetesCloud)) continue;
-                if (!cloud.canProvision(cloudState)) continue;
 
-                workloadToProvision = Math.min(MAX_PROVISIONING, workloadToProvision);
-                for (CloudProvisioningListener cl : CloudProvisioningListener.all()) {
-                    if (cl.canProvision(cloud, cloudState, workloadToProvision) != null) {
-                        continue;
-                    }
+            boolean canAnyProvision = false;
+            for (Cloud cloud : jenkinsClouds) {
+                if ((cloud instanceof KubernetesCloud) && cloud.canProvision(cloudState)) {
+                    canAnyProvision = true;
                 }
-                Collection<NodeProvisioner.PlannedNode> plannedNodes = cloud.provision(cloudState, workloadToProvision);
-                LOGGER.log(Level.INFO, "Planned {0} new nodes", plannedNodes.size());
-                fireOnStarted(cloud, strategyState.getLabel(), plannedNodes);
-                strategyState.recordPendingLaunches(plannedNodes);
-                availableCapacity += plannedNodes.size();
-                LOGGER.log(Level.INFO, "After provisioning, available capacity={0}, currentDemand={1}", new Object[]{availableCapacity, currentDemand});
-                break;
+            }
+            if (canAnyProvision) {
+                for (Cloud cloud : jenkinsClouds) {
+                    int workloadToProvision = currentDemand - availableCapacity;
+                    if (!(cloud instanceof KubernetesCloud)) continue;
+                    if (!cloud.canProvision(cloudState)) continue;
+
+                    workloadToProvision = Math.min(MAX_PROVISIONING, workloadToProvision);
+                    for (CloudProvisioningListener cl : CloudProvisioningListener.all()) {
+                        if (cl.canProvision(cloud, cloudState, workloadToProvision) != null) {
+                            continue;
+                        }
+                    }
+                    Collection<NodeProvisioner.PlannedNode> plannedNodes = cloud.provision(cloudState, workloadToProvision);
+                    LOGGER.log(Level.INFO, "Planned {0} new nodes", plannedNodes.size());
+                    fireOnStarted(cloud, strategyState.getLabel(), plannedNodes);
+                    strategyState.recordPendingLaunches(plannedNodes);
+                    availableCapacity += plannedNodes.size();
+                    LOGGER.log(Level.INFO, "After provisioning, available capacity={0}, currentDemand={1}", new Object[]{availableCapacity, currentDemand});
+                    break;
+                }
+            } else {
+                LOGGER.log(Level.INFO, "No Kubernetes Clouds capable of provisioning, falling back to remaining strategies");
+                return NodeProvisioner.StrategyDecision.CONSULT_REMAINING_STRATEGIES;
             }
         }
         if (availableCapacity > previousCapacity && label != null) {
